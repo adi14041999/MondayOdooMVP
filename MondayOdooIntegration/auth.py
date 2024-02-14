@@ -81,4 +81,4 @@ class SecretManager:
         """
         Loads secrets from a .env file.
         """
-        load_dotenv()  # Loading environment variables from .env file
+        return load_dotenv()  # Loading environment variables from .env file

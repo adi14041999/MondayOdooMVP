@@ -86,9 +86,13 @@ class MondayAPI:
         query = '{{boards(ids: {}) {{columns {{id title}}}}}}'.format(board_id)
         return self.__make_query(api_key, query)
 
+    def get_items_names(self, api_key, board_id):
+        query = ('{{boards(ids: {}) {{ items_page {{ items {{ name }}}}}}}}'.format(board_id))
+        return self.__make_query(api_key, query)
+
     def get_item_with_column_value(self, api_key, board_id, column_value):
-        query = ('boards(ids: {}) {{ items_page {{ items {{ name column_values(ids: ["{}"]) {{ text '
-                 'column {{ id } } } }}}}}}}'.format(board_id, column_value))
+        query = ('{{boards(ids: {}) {{ items_page {{ items {{ name column_values(ids: ["{}"]) {{ text '
+                 'column {{ id }}}}}}}}}}}}'.format(board_id, column_value))
         return self.__make_query(api_key, query)
 
     def get_item_with_column_values(self, api_key, board_id, column_value1, column_value2):
@@ -104,8 +108,8 @@ class MondayAPI:
         Returns:
             requests.Response: Response object from the API request.
         """
-        query = ('boards(ids: {}) {{ items_page {{ items {{ name column_values(ids: ["{}", "{}"]) {{ text '
-                 'column {{ id } } } }}}}}}}'.format(board_id, column_value1, column_value2))
+        query = ('{{boards(ids: {}) {{ items_page {{ items {{ name column_values(ids: ["{}", "{}"]) {{ text '
+                 'column {{ id } } } }}}}}}}}}'.format(board_id, column_value1, column_value2))
         return self.__make_query(api_key, query)
 
     def get_item_with_column_values_list(self, api_key, board_id, column_values_list):
@@ -121,8 +125,8 @@ class MondayAPI:
             requests.Response: Response object from the API request.
         """
         column_ids = ['"{}"'.format(column_value) for column_value in column_values_list]
-        query = ('boards(ids: {}) {{ items_page {{ items {{ name column_values(ids: [{}]) {{ text '
-                 'column {{ id } } }}}}}}}'.format(board_id, ", ".join(column_ids)))
+        query = ('{{boards(ids: {}) {{ items_page {{ items {{ name column_values(ids: [{}]) {{ text '
+                 'column {{ id } } }}}}}}}}}'.format(board_id, ", ".join(column_ids)))
         return self.__make_query(api_key, query)
 
     def change_column_value_of_item(self, api_key, board_id, item_id, column_id, column_value):
