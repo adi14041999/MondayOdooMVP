@@ -14,7 +14,6 @@ ODOO_MODEL_NAME = "hr.applicant"
 
 
 # Fetch all applicants with name "Chavex", and add them to Odoo
-
 def use_case_1(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_object):
     response = monday_api.get_items_names(monday_auth.api_key, MONDAY_BOARD_ID)
     if response.status_code == 200:
