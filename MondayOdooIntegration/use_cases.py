@@ -56,7 +56,7 @@ def use_case_2(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_obje
                     continue
                 applicant_ids = odoo_api.get_applicant_id_with_name(odoo_object, odoo_uid, odoo_auth.api_password,
                                                                     partner_name)
-                applicant_data = applicant_data = {
+                applicant_data = {
                     'partner_name': partner_name,
                     'name': 'Updated Status!',
                     'stage_id': stage_id
