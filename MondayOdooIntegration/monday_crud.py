@@ -86,16 +86,18 @@ class MondayAPI:
         query = '{{boards(ids: {}) {{columns {{id title}}}}}}'.format(board_id)
         return self.__make_query(api_key, query)
 
+    # WORKING
     def get_items_names(self, api_key, board_id):
         query = ('{{boards(ids: {}) {{ items_page {{ items {{ name }}}}}}}}'.format(board_id))
         return self.__make_query(api_key, query)
 
-    def get_item_with_column_value(self, api_key, board_id, column_value):
+    # WORKING
+    def get_item_with_column(self, api_key, board_id, column_value):
         query = ('{{boards(ids: {}) {{ items_page {{ items {{ name column_values(ids: ["{}"]) {{ text '
                  'column {{ id }}}}}}}}}}}}'.format(board_id, column_value))
         return self.__make_query(api_key, query)
 
-    def get_item_with_column_values(self, api_key, board_id, column_value1, column_value2):
+    def get_item_with_columns(self, api_key, board_id, column_value1, column_value2):
         """
         Get items with specific column values.
 
@@ -112,7 +114,7 @@ class MondayAPI:
                  'column {{ id } } } }}}}}}}}}'.format(board_id, column_value1, column_value2))
         return self.__make_query(api_key, query)
 
-    def get_item_with_column_values_list(self, api_key, board_id, column_values_list):
+    def get_item_with_columns_list(self, api_key, board_id, column_values_list):
         """
         Get items with specific column values provided in a list.
 

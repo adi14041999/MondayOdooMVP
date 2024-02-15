@@ -73,9 +73,9 @@ class OdooAPI:
         """
         applicant_ids = self.get_applicants_ids(odoo_object, api_uid, api_password)
         applicants_details = self.__make_query(
-            odoo_object, api_uid, api_password, 'read', [applicant_ids], {'fields': ['id', 'name']}
+            odoo_object, api_uid, api_password, 'read', [applicant_ids], {'fields': ['id', 'partner_name', 'name']}
         )
-        applicant_tuples = [(applicant['id'], applicant['name']) for applicant in applicants_details]
+        applicant_tuples = [(applicant['id'], applicant['partner_name']) for applicant in applicants_details]
         return applicant_tuples
 
     def get_applicants_details(self, odoo_object, api_uid, api_password):
@@ -93,6 +93,7 @@ class OdooAPI:
         return self.__make_query(odoo_object, api_uid, api_password, 'fields_get', [],
                                  {'attributes': ['string', 'type']})
 
+    # WORKING
     def get_applicant_id_with_name(self, odoo_object, api_uid, api_password, applicant_name):
         """
         Get the ID of an applicant by name.
@@ -107,11 +108,12 @@ class OdooAPI:
             ID of the applicant with the specified name.
         """
         return self.__make_query(
-            odoo_object, api_uid, api_password, 'search', [[['name', '=', applicant_name]]], None
+            odoo_object, api_uid, api_password, 'search', [[['partner_name', '=', applicant_name]]], None
         )
 
     # Methods for creating data
 
+    # WORKING
     def create_applicant_with_field_id_and_field_value(
             self, odoo_object, api_uid, api_password, field_id, field_name
     ):
@@ -132,6 +134,15 @@ class OdooAPI:
             odoo_object, api_uid, api_password, 'create', [{field_id: field_name}], None
         )
 
+    # WORKING
+    def create_applicant_with_fields(
+            self, odoo_object, api_uid, api_password, field_dictionary
+    ):
+        return self.__make_query(
+            odoo_object, api_uid, api_password, 'create', [field_dictionary], None
+        )
+
+    # WORKING
     def create_applicant_with_name(self, odoo_object, api_uid, api_password, applicant_name):
         """
         Create an applicant with a specified name.
@@ -146,11 +157,12 @@ class OdooAPI:
             ID of the created applicant.
         """
         return self.__make_query(
-            odoo_object, api_uid, api_password, 'create', [{'name': applicant_name}], None
-        )
+            odoo_object, api_uid, api_password, 'create',
+            [{'partner_name': applicant_name, 'name': 'New Applicant!'}], None)
 
     # Methods for updating data
 
+    # WORKING
     def update_field_of_applicant_with_id(
             self, odoo_object, api_uid, api_password, applicant_id, field_id, field_value
     ):
@@ -169,7 +181,16 @@ class OdooAPI:
             ID of the updated applicant.
         """
         return self.__make_query(
-            odoo_object, api_uid, api_password, 'write', [[int(applicant_id)]], {field_id: field_value}
+            odoo_object, api_uid, api_password, 'write',
+            [[int(applicant_id)], {field_id: field_value}], None
+        )
+
+    # WORKING
+    def update_fields_of_applicant_with_id(
+            self, odoo_object, api_uid, api_password, applicant_id, field_dictionary
+    ):
+        return self.__make_query(
+            odoo_object, api_uid, api_password, 'write', [[int(applicant_id)], field_dictionary], None
         )
 
     # Method for deleting data
