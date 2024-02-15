@@ -111,6 +111,12 @@ class OdooAPI:
             odoo_object, api_uid, api_password, 'search', [[['partner_name', '=', applicant_name]]], None
         )
 
+    # WORKING
+    def get_employees_and_fields(self, odoo_object, api_uid, api_password, fields_list):
+        return self.__make_query(
+            odoo_object, api_uid, api_password, 'search_read', [[]], {'fields': fields_list}
+        )
+
     # Methods for creating data
 
     # WORKING

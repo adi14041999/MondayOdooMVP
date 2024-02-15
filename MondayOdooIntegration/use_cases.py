@@ -1,9 +1,10 @@
-from dotenv import dotenv_values
 from auth import SecretManager
 from auth import MondayAuth
 from auth import OdooAuth
 from monday_crud import MondayAPI
 from odoo_crud import OdooAPI
+
+from dotenv import dotenv_values
 
 MONDAY_URL = "https://api.monday.com/v2"
 MONDAY_BOARD_ID = 5990805927
@@ -11,6 +12,7 @@ MONDAY_BOARD_ID = 5990805927
 ODOO_URL = "https://citrus2.odoo.com"
 ODOO_DB = "citrus2"
 ODOO_MODEL_NAME = "hr.applicant"
+# ODOO_MODEL_NAME = "hr.employee"
 
 STATUS_TO_STAGE_ID = {
     "New": 1,
@@ -74,6 +76,21 @@ def use_case_2(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_obje
         return None
 
 
+# Move all the employees from Odoo to a board on Monday with similar fields
+def use_case_3(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_object):
+    fields_list = ['name', 'work_email', 'job_id', 'department_id']
+    # TODO: populate those fields on Monday
+    monday_fields = []
+    employees = odoo_api.get_employees_and_fields(odoo_object, odoo_uid, odoo_auth.api_password, fields_list)
+    response = monday_api.create_board(monday_auth.api_key, "Employees from Odoo")
+    if response.status_code == 200:
+        response_json = response.json()
+        if response_json:
+            board_id = response_json['data']['create_board']['id']
+            for employee in employees:
+                monday_api.create_item(monday_auth.api_key, board_id, employee['name'])
+
+
 def main():
     loaded = SecretManager.load_secrets()
     if not loaded:
@@ -106,6 +123,7 @@ def main():
     # All use cases below
     # use_case_1(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_object)
     # use_case_2(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_object)
+    # use_case_3(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_object)
 
 
 # Using the special variable __name__

@@ -58,6 +58,7 @@ class MondayAPI:
         query = '{ boards { name id } }'
         return self.__make_query(api_key, query)
 
+    # WORKS
     def create_board(self, api_key, board_name):
         """
         Create a new board on Monday.com.
@@ -149,6 +150,7 @@ class MondayAPI:
                  'id}}}}').format(item_id, board_id, column_id, column_value)
         return self.__make_query(api_key, query)
 
+    # WORKS
     def create_item(self, api_key, board_id, item_name):
         """
         Create a new item on a board.
