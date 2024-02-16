@@ -187,6 +187,7 @@ class MondayAPI:
         }
         return self.__make_query_with_values(api_key, query, values_dictionary)
 
+    # WORKING
     def delete_item(self, api_key, item_id):
         """
         Delete an item from a board.

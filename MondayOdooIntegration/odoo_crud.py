@@ -117,6 +117,13 @@ class OdooAPI:
             odoo_object, api_uid, api_password, 'search_read', [[]], {'fields': fields_list}
         )
 
+    # WORKING
+    def get_employees_and_fields_with_name(self, odoo_object, api_uid, api_password, employee_name, fields_list):
+        return self.__make_query(
+            odoo_object, api_uid, api_password, 'search_read',
+            [[['name', '=', employee_name]]], {'fields': fields_list}
+        )
+
     # Methods for creating data
 
     # WORKING
@@ -201,6 +208,7 @@ class OdooAPI:
 
     # Method for deleting data
 
+    # WORKING
     def delete_applicant_with_id(self, odoo_object, api_uid, api_password, applicant_id):
         """
         Delete an applicant by ID.

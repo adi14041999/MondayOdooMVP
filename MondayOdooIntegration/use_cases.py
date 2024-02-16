@@ -24,7 +24,7 @@ STATUS_TO_STAGE_ID = {
 }
 
 
-# Fetch all applicants with name "Chavex", and add them to Odoo
+# Fetch all applicants with name "Chaves", and add them to Odoo
 def use_case_1(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_object):
     response = monday_api.get_items_names(monday_auth.api_key, MONDAY_BOARD_ID)
     if response.status_code == 200:
@@ -33,7 +33,7 @@ def use_case_1(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_obje
             for board in response_json['data']['boards']:
                 for item in board['items_page']['items']:
                     name = item['name']
-                    if name == "Chavex":
+                    if name == "Chaves":
                         odoo_api.create_applicant_with_name(odoo_object, odoo_uid, odoo_auth.api_password, name)
                         print(f"Applicant {name} created in Odoo.")
     else:
@@ -91,6 +91,30 @@ def use_case_3(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_obje
                 monday_api.create_item(monday_auth.api_key, board_id, employee['name'])
 
 
+# Get addresses of all employees in Odoo with name 'Andy' and do something with them on Monday
+def use_case_4(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_object):
+    fields_list = ['private_street', 'private_city', 'private_zip']
+    employees = odoo_api.get_employees_and_fields_with_name(odoo_object, odoo_uid, odoo_auth.api_password,
+                                                            "Andy", fields_list)
+    if employees:
+        for employee in employees:
+            address = f"{employee['private_street']}, {employee['private_city']}, {employee['private_zip']}"
+            print(address)
+    return None
+
+
+# Delete some users from Monday and Odoo
+def use_case_5(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_object):
+    delete_from_monday = [6076917957, 6076918096]
+    for applicant_id in delete_from_monday:
+        monday_api.delete_item(monday_auth.api_key, applicant_id)
+        print("Deleted: ", applicant_id)
+    delete_from_odoo = odoo_api.get_applicants_ids(odoo_object, odoo_uid, odoo_auth.api_password)
+    for applicant_id in delete_from_odoo:
+        odoo_api.delete_applicant_with_id(odoo_object, odoo_uid, odoo_auth.api_password, applicant_id)
+        print("Deleted: ", applicant_id)
+
+
 def main():
     loaded = SecretManager.load_secrets()
     if not loaded:
@@ -124,6 +148,8 @@ def main():
     # use_case_1(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_object)
     # use_case_2(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_object)
     # use_case_3(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_object)
+    # use_case_4(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_object)
+    # use_case_5(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_object)
 
 
 # Using the special variable __name__
