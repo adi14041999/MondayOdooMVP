@@ -5,54 +5,65 @@ from dotenv import load_dotenv  # Importing load_dotenv function to load environ
 
 @dataclass
 class MondayAuth:
-    api_url: str  # URL of the Monday API
     api_key: str  # API key for authentication
 
-    def get_headers(self):
+    def get_headers(self) -> dict:
         """
-        Returns the headers for authentication.
+        Function to get authentication headers.
+
+        Parameters:
+            self (MondayAuth): Instance of MondayAuth class.
 
         Returns:
-            dict: The headers with the API key.
+            dict: Dictionary containing authorization headers with API key.
         """
         return {"Authorization": self.api_key}  # Returning headers with API key
 
 
 @dataclass
 class OdooAuth:
-    api_url: str  # URL of the Odoo API
-    api_db: str  # Database name for Odoo
     api_username: str  # Username for Odoo authentication
     api_password: str  # Password for Odoo authentication
-    model_name: str  # Name of the model for Odoo operations
 
-    def get_object(self):
+    @staticmethod
+    def get_object(api_url: str) -> xmlrpc.client.ServerProxy:
         """
-        Returns the XML-RPC server proxy object for Odoo object operations.
+        Static method to get the ServerProxy object.
 
-        Returns:
-            xmlrpc.client.ServerProxy: The server proxy object.
-        """
-        return xmlrpc.client.ServerProxy('{}/xmlrpc/2/object'.format(self.api_url))
-
-    def __get_common(self):
-        """
-        Returns the XML-RPC server proxy object for Odoo common operations.
+        Parameters:
+            api_url (str): URL of the API.
 
         Returns:
-            xmlrpc.client.ServerProxy: The server proxy object.
+            xmlrpc.client.ServerProxy: ServerProxy object for the specified API URL.
         """
-        return xmlrpc.client.ServerProxy('{}/xmlrpc/2/common'.format(self.api_url))
+        return xmlrpc.client.ServerProxy('{}/xmlrpc/2/object'.format(api_url))
 
-    def authenticate(self):
+    @staticmethod
+    def __get_common(api_url: str) -> xmlrpc.client.ServerProxy:
         """
-        Authenticates with the Odoo API.
+        Private static method to get the common ServerProxy object.
+
+        Parameters:
+            api_url (str): URL of the API.
 
         Returns:
-            int: The user ID upon successful authentication.
+            xmlrpc.client.ServerProxy: Common ServerProxy object for the specified API URL.
         """
-        return (self.__get_common()
-                .authenticate(self.api_db, self.api_username, self.api_password, {}))  # Authenticating and returning
+        return xmlrpc.client.ServerProxy('{}/xmlrpc/2/common'.format(api_url))
+
+    def authenticate(self, api_db: str, api_url: str) -> int:
+        """
+        Method to authenticate with Odoo.
+
+        Parameters:
+            api_db (str): Name of the Odoo database.
+            api_url (str): URL of the Odoo API.
+
+        Returns:
+            int: Authentication result.
+        """
+        return (self.__get_common(api_url)
+                .authenticate(api_db, self.api_username, self.api_password, {}))  # Authenticating and returning
 
 
 class SecretManager:
@@ -61,14 +72,14 @@ class SecretManager:
     ODOO_PASSWORD_KEY = "ODOO_PASSWORD"  # Key for Odoo password in .env file
     DOT_ENV_FILENAME = ".env"  # Filename for the .env file
 
-    def save_secrets(self, monday_api_key, odoo_username, odoo_password):
+    def save_secrets(self, monday_api_key: str, odoo_username: str, odoo_password: str) -> None:
         """
-        Saves secrets (Monday API key, Odoo username, and Odoo password) to a .env file.
+        Method to save secrets to .env file.
 
-        Args:
-            monday_api_key (str): The API key for Monday.
-            odoo_username (str): The username for Odoo.
-            odoo_password (str): The password for Odoo.
+        Parameters:
+            monday_api_key (str): API key for Monday.
+            odoo_username (str): Username for Odoo.
+            odoo_password (str): Password for Odoo.
         """
         with open("{}".format(self.DOT_ENV_FILENAME), "w") as f:  # Opening .env file in write mode
             lines = ["{}={}\n".format(self.MONDAY_API_KEY_KEY, monday_api_key),  # Lines to write in .env file
@@ -77,8 +88,11 @@ class SecretManager:
             f.writelines(lines)  # Writing lines to .env file
 
     @staticmethod
-    def load_secrets():
+    def load_secrets() -> bool:
         """
-        Loads secrets from a .env file.
+        Static method to load secrets from .env file.
+
+        Returns:
+            bool: Whether the loading was successful or not.
         """
         return load_dotenv()  # Loading environment variables from .env file

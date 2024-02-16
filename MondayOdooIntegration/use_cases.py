@@ -26,7 +26,7 @@ STATUS_TO_STAGE_ID = {
 
 # Fetch all applicants with name "Chaves", and add them to Odoo
 def use_case_1(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_object):
-    response = monday_api.get_items_names(monday_auth.api_key, MONDAY_BOARD_ID)
+    response = monday_api.read_items_and_names(monday_auth.api_key, MONDAY_BOARD_ID)
     if response.status_code == 200:
         response_json = response.json()
         if response_json:
@@ -43,7 +43,7 @@ def use_case_1(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_obje
 
 # Updates the status of all Odoo applicants considering Monday as the source of truth
 def use_case_2(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_object):
-    response = monday_api.get_item_with_column(monday_auth.api_key, MONDAY_BOARD_ID, "status")
+    response = monday_api.read_items_with_column_id(monday_auth.api_key, MONDAY_BOARD_ID, "status")
     if response.status_code == 200:
         response_json = response.json()
         if response_json:
@@ -54,8 +54,8 @@ def use_case_2(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_obje
                 if stage_id is None:
                     print(f"No stage ID found for status '{status_text}'. Skipping...")
                     continue
-                applicant_ids = odoo_api.get_applicant_id_with_name(odoo_object, odoo_uid, odoo_auth.api_password,
-                                                                    partner_name)
+                applicant_ids = odoo_api.read_applicants_ids_with_name(odoo_object, odoo_uid, odoo_auth.api_password,
+                                                                       partner_name)
                 applicant_data = {
                     'partner_name': partner_name,
                     'name': 'Updated Status!',
@@ -67,8 +67,8 @@ def use_case_2(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_obje
                     print(f"Created new applicant with ID: {new_applicant_id}")
                 else:
                     for applicant_id in applicant_ids:
-                        odoo_api.update_fields_of_applicant_with_id(odoo_object, odoo_uid, odoo_auth.api_password,
-                                                                    applicant_id, applicant_data)
+                        odoo_api.update_fields_of_applicant(odoo_object, odoo_uid, odoo_auth.api_password,
+                                                            applicant_id, applicant_data)
                         print(
                             f"Updated applicant {partner_name} with new stage ID: {stage_id} and name: {partner_name}")
     else:
@@ -81,25 +81,26 @@ def use_case_3(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_obje
     fields_list = ['name', 'work_email', 'job_id', 'department_id']
     # TODO: populate those fields on Monday
     monday_fields = []
-    employees = odoo_api.get_employees_and_fields(odoo_object, odoo_uid, odoo_auth.api_password, fields_list)
-    response = monday_api.create_board(monday_auth.api_key, "Employees from Odoo")
+    employees = odoo_api.read_employees_and_fields(odoo_object, odoo_uid, odoo_auth.api_password, fields_list)
+    response = monday_api.create_board_with_name(monday_auth.api_key, "Employees from Odoo")
     if response.status_code == 200:
         response_json = response.json()
         if response_json:
             board_id = response_json['data']['create_board']['id']
             for employee in employees:
-                monday_api.create_item(monday_auth.api_key, board_id, employee['name'])
+                monday_api.create_item_with_name(monday_auth.api_key, board_id, employee['name'])
 
 
 # Get addresses of all employees in Odoo with name 'Andy' and do something with them on Monday
 def use_case_4(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_object):
     fields_list = ['private_street', 'private_city', 'private_zip']
-    employees = odoo_api.get_employees_and_fields_with_name(odoo_object, odoo_uid, odoo_auth.api_password,
-                                                            "Andy", fields_list)
+    employees = odoo_api.read_employees_and_fields_with_name(odoo_object, odoo_uid, odoo_auth.api_password,
+                                                             "Andy", fields_list)
     if employees:
         for employee in employees:
             address = f"{employee['private_street']}, {employee['private_city']}, {employee['private_zip']}"
             print(address)
+            # TODO: Do something on Monday
     return None
 
 
@@ -109,9 +110,9 @@ def use_case_5(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_obje
     for applicant_id in delete_from_monday:
         monday_api.delete_item(monday_auth.api_key, applicant_id)
         print("Deleted: ", applicant_id)
-    delete_from_odoo = odoo_api.get_applicants_ids(odoo_object, odoo_uid, odoo_auth.api_password)
+    delete_from_odoo = odoo_api.read_applicants_ids(odoo_object, odoo_uid, odoo_auth.api_password)
     for applicant_id in delete_from_odoo:
-        odoo_api.delete_applicant_with_id(odoo_object, odoo_uid, odoo_auth.api_password, applicant_id)
+        odoo_api.delete_applicant(odoo_object, odoo_uid, odoo_auth.api_password, applicant_id)
         print("Deleted: ", applicant_id)
 
 
@@ -135,21 +136,23 @@ def main():
     odoo_password = secrets[SecretManager.ODOO_PASSWORD_KEY]
     # print(odoo_password)
 
-    monday_auth = MondayAuth(MONDAY_URL, monday_api_key)
-    odoo_auth = OdooAuth(ODOO_URL, ODOO_DB, odoo_username, odoo_password, ODOO_MODEL_NAME)
+    monday_auth = MondayAuth(monday_api_key)
+    odoo_auth = OdooAuth(odoo_username, odoo_password)
 
-    odoo_uid = odoo_auth.authenticate()
-    odoo_object = odoo_auth.get_object()
+    odoo_uid = odoo_auth.authenticate(ODOO_DB, ODOO_URL)
+    odoo_object = odoo_auth.get_object(ODOO_URL)
 
     monday_api = MondayAPI(MONDAY_URL)
-    odoo_api = OdooAPI(ODOO_URL, ODOO_DB, ODOO_MODEL_NAME)
+    odoo_api = OdooAPI(ODOO_URL, ODOO_DB)
 
     # All use cases below
-    # use_case_1(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_object)
-    # use_case_2(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_object)
-    # use_case_3(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_object)
-    # use_case_4(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_object)
-    # use_case_5(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_object)
+    """"
+    use_case_1(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_object)
+    use_case_2(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_object)
+    use_case_3(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_object)
+    use_case_4(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_object)
+    use_case_5(monday_auth, monday_api, odoo_auth, odoo_api, odoo_uid, odoo_object)
+    """
 
 
 # Using the special variable __name__
