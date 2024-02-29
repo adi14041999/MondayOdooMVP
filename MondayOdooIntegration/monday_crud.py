@@ -75,7 +75,7 @@ class MondayAPI:
         return self.__make_query(api_key, query)
 
     def create_item_with_values(self, api_key: str, board_id: int, item_name: str,
-                                values_json: dict) -> requests.Response:
+                                values: dict) -> requests.Response:
         """
         Creates an item with the specified values.
 
@@ -83,7 +83,7 @@ class MondayAPI:
             api_key (str): API key for authentication.
             board_id (int): ID of the board.
             item_name (str): Name of the item to be created.
-            values_json (dict): JSON containing values for the item.
+            values (dict): dict containing values for the item.
 
         Returns:
             requests.Response: Response object from the API.
@@ -92,7 +92,7 @@ class MondayAPI:
                  'item_name:$myItemName, column_values:$columnVals) {{ id }} }}').format(board_id)
         values_dictionary = {
             'myItemName': item_name,
-            'columnVals': json.dumps(values_json)
+            'columnVals': json.dumps(values)
         }
         return self.__make_query_with_values(api_key, query, values_dictionary)
 
