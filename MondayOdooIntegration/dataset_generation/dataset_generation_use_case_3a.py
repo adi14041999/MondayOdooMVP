@@ -1,6 +1,7 @@
 import xmlrpc.client  # Importing the XML-RPC client library
 from dataclasses import dataclass  # Importing the dataclass decorator for creating classes with lightweight syntax
 import requests
+import json
 
 MONDAY_URL = "https://api.monday.com/v2"
 
@@ -112,23 +113,23 @@ class OdooAPI:
                 self.api_db, api_uid, api_password, api_model_name, action, search_filter
             )
 
-    def create_applicant_with_name(self, api_model_name: str, odoo_object, api_uid, api_password, applicant_name: str):
+    def read_applicants_and_fields(self, api_model_name: str, odoo_object, api_uid, api_password, fields_list: list):
         """
-        Creates an applicant with the specified name.
+        Reads employees and specified fields from the Odoo API.
 
         Parameters:
             api_model_name (str): Name of the model.
             odoo_object: Object for executing the query.
             api_uid: User ID for authentication.
             api_password: Password for authentication.
-            applicant_name (str): Name of the applicant.
+            fields_list (list): List of fields to be retrieved.
 
         Returns:
             Query result.
         """
         return self.__make_query(
-            api_model_name, odoo_object, api_uid, api_password, 'create',
-            [{'partner_name': applicant_name, 'name': 'New Applicant!'}], None)
+            api_model_name, odoo_object, api_uid, api_password, 'search_read', [[]], {'fields': fields_list}
+        )
 
 
 class MondayAPI:
@@ -174,38 +175,58 @@ class MondayAPI:
         headers = {'Authorization': api_key, 'Content-Type': 'application/json'}
         return requests.post(url=self.api_url, json=data, headers=headers)
 
-    def read_items_and_names(self, api_key: str, board_id: int) -> requests.Response:
+    def create_board_with_name(self, api_key: str, board_name: str) -> requests.Response:
         """
-        Reads items and names from a board in the Monday API.
+        Creates a board with the specified name.
 
         Parameters:
             api_key (str): API key for authentication.
-            board_id (int): ID of the board.
+            board_name (str): Name of the board to be created.
 
         Returns:
             requests.Response: Response object from the API.
         """
-        query = ('{{boards(ids: {}) {{ items_page {{ items {{ name }}}}}}}}'.format(board_id))
+        query = 'mutation {{create_board (board_name: "{}", board_kind: public) {{id}}}}'.format(board_name)
         return self.__make_query(api_key, query)
 
+    def create_item_with_values(self, api_key: str, board_id: int, item_name: str,
+                                values: dict) -> requests.Response:
+        """
+        Creates an item with the specified values.
 
-def fetch_applicants_from_monday_and_create_on_odoo(odoo_object, odoo_uid, odoo_auth, monday_auth, monday_api, board_id, item_name):
-    response = monday_api.read_items_and_names(monday_auth.api_key, board_id)
+        Parameters:
+            api_key (str): API key for authentication.
+            board_id (int): ID of the board.
+            item_name (str): Name of the item to be created.
+            values (dict): dict containing values for the item.
+
+        Returns:
+            requests.Response: Response object from the API.
+        """
+        query = ('mutation ($myItemName: String!, $columnVals: JSON!) {{ create_item (board_id:{}, '
+                 'item_name:$myItemName, column_values:$columnVals) {{ id }} }}').format(board_id)
+        values_dictionary = {
+            'myItemName': item_name,
+            'columnVals': json.dumps(values)
+        }
+        return self.__make_query_with_values(api_key, query, values_dictionary)
+
+
+def fetch_applicants_from_odoo_and_create_on_monday(odoo_object, odoo_uid, odoo_auth, monday_auth, monday_api, mapping):
+    odoo_fields = list(mapping.keys())
+    applicants = odoo_api.read_applicants_and_fields(ODOO_MODEL_NAME, odoo_object, odoo_uid, odoo_auth.api_password,
+                                                    odoo_fields)
+    response = monday_api.create_board_with_name(monday_auth.api_key, "Applicants from Odoo")
     if response.status_code == 200:
         response_json = response.json()
         if response_json:
-            for board in response_json['data']['boards']:
-                for item in board['items_page']['items']:
-                    name = item['name']
-                    if name == item_name:
-                        create_applicant_on_odoo(odoo_auth, odoo_api, odoo_uid, odoo_object, item_name)
-    else:
-        print("Failed to fetch data from Monday.com")
-
-
-def create_applicant_on_odoo(odoo_auth, odoo_api, odoo_uid, odoo_object, item_name):
-    odoo_api.create_applicant_with_name(odoo_object, odoo_uid, odoo_auth.api_password, item_name)
-    print(f"Applicant {item_name} created in Odoo.")
+            board_id = response_json['data']['create_board']['id']
+            for applicant in applicants:
+                monday_key_values = {}
+                for key, value in mapping.items():
+                    monday_key_values[value] = applicant[key]
+                monday_api.create_item_with_values(monday_auth.api_key, board_id, applicant['partner_name'],
+                                                   monday_key_values)
 
 
 print('Enter the odoo_username:')
@@ -224,8 +245,7 @@ odoo_object = odoo_auth.get_object(ODOO_URL)
 monday_api = MondayAPI(MONDAY_URL)
 odoo_api = OdooAPI(ODOO_URL, ODOO_DB)
 
-print('Enter the board_id:')
-board_id = int(input())
-print('Enter the name of the applicant on Monday:')
-item_name = input()
-fetch_applicants_from_monday_and_create_on_odoo(odoo_object, odoo_uid, odoo_auth, monday_auth, monday_api, board_id, item_name)
+print('Enter the odoo to monday field mapping:')
+mapping = json.loads(input())
+
+fetch_applicants_from_odoo_and_create_on_monday(odoo_object, odoo_uid, odoo_auth, monday_auth, monday_api, mapping)

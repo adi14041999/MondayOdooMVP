@@ -234,7 +234,7 @@ class MondayAPI:
         return self.__make_query(api_key, query)
 
 
-def fetch_applicants_from_monday(odoo_object, odoo_uid, odoo_auth, monday_auth, monday_api, board_id, id_name,
+def fetch_applicants_from_monday_and_update_on_odoo(odoo_object, odoo_uid, odoo_auth, monday_auth, monday_api, board_id, id_name,
                                  id_status, STATUS_TO_STAGE_ID):
     response = monday_api.read_items_with_column_id(monday_auth.api_key, board_id, id_status)
     if response.status_code == 200:
@@ -294,4 +294,6 @@ print('Enter the status list on Monday: ')
 STATUS_TO_STAGE_ID = {}
 for i in range(1, 7):
     STATUS_TO_STAGE_ID[input()] = i
-fetch_applicants_from_monday(odoo_object, odoo_uid, odoo_auth, monday_auth, monday_api, board_id, id_name, id_status, STATUS_TO_STAGE_ID)
+
+fetch_applicants_from_monday_and_update_on_odoo(odoo_object, odoo_uid, odoo_auth, monday_auth, monday_api, board_id, id_name, id_status,
+                             STATUS_TO_STAGE_ID)
