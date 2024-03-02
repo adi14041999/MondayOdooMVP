@@ -169,6 +169,26 @@ class OdooAPI:
             None
         )
 
+    def read_applicant_id_with_phone(self, api_model_name: str, odoo_object, api_uid, api_password,
+                                      applicant_phone: str) -> list:
+        """
+        Reads applicant IDs with a specific name from the Odoo API.
+
+        Parameters:
+            api_model_name (str): Name of the model.
+            odoo_object: Object for executing the query.
+            api_uid: User ID for authentication.
+            api_password: Password for authentication.
+            applicant_phone (str): Phone number of the applicant.
+
+        Returns:
+            List of applicant IDs.
+        """
+        return self.__make_query(
+            api_model_name, odoo_object, api_uid, api_password, 'search', [[['partner_phone', '=', applicant_phone]]],
+            None
+        )
+
     def read_applicants_and_fields(self, api_model_name: str, odoo_object, api_uid, api_password, fields_list: list):
         """
         Reads applicants and specified fields from the Odoo API.
