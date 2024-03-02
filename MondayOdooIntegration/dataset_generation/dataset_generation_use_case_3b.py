@@ -11,23 +11,6 @@ ODOO_MODEL_NAME = "hr.employee"
 
 
 @dataclass
-class MondayAuth:
-    api_key: str  # API key for authentication
-
-    def get_headers(self) -> dict:
-        """
-        Function to get authentication headers.
-
-        Parameters:
-            self (MondayAuth): Instance of MondayAuth class.
-
-        Returns:
-            dict: Dictionary containing authorization headers with API key.
-        """
-        return {"Authorization": self.api_key}  # Returning headers with API key
-
-
-@dataclass
 class OdooAuth:
     api_username: str  # Username for Odoo authentication
     api_password: str  # Password for Odoo authentication
@@ -132,6 +115,23 @@ class OdooAPI:
         )
 
 
+@dataclass
+class MondayAuth:
+    api_key: str  # API key for authentication
+
+    def get_headers(self) -> dict:
+        """
+        Function to get authentication headers.
+
+        Parameters:
+            self (MondayAuth): Instance of MondayAuth class.
+
+        Returns:
+            dict: Dictionary containing authorization headers with API key.
+        """
+        return {"Authorization": self.api_key}  # Returning headers with API key
+
+
 class MondayAPI:
     api_url: str
 
@@ -215,8 +215,8 @@ class MondayAPI:
 def fetch_employees_from_odoo_and_create_on_monday(odoo_object, odoo_uid, odoo_auth, monday_auth, monday_api, mapping):
     odoo_fields = list(mapping.keys())
     employees = odoo_api.read_employees_and_fields(ODOO_MODEL_NAME, odoo_object, odoo_uid, odoo_auth.api_password,
-                                                    odoo_fields)
-    response = monday_api.create_board_with_name(monday_auth.api_key, "Applicants from Odoo")
+                                                   odoo_fields)
+    response = monday_api.create_board_with_name(monday_auth.api_key, "Employees from Odoo")
     if response.status_code == 200:
         response_json = response.json()
         if response_json:

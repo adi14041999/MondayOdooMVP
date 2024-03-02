@@ -10,23 +10,6 @@ ODOO_MODEL_NAME = "hr.applicant"
 
 
 @dataclass
-class MondayAuth:
-    api_key: str  # API key for authentication
-
-    def get_headers(self) -> dict:
-        """
-        Function to get authentication headers.
-
-        Parameters:
-            self (MondayAuth): Instance of MondayAuth class.
-
-        Returns:
-            dict: Dictionary containing authorization headers with API key.
-        """
-        return {"Authorization": self.api_key}  # Returning headers with API key
-
-
-@dataclass
 class OdooAuth:
     api_username: str  # Username for Odoo authentication
     api_password: str  # Password for Odoo authentication
@@ -131,6 +114,23 @@ class OdooAPI:
             [{'partner_name': applicant_name, 'name': 'New Applicant!'}], None)
 
 
+@dataclass
+class MondayAuth:
+    api_key: str  # API key for authentication
+
+    def get_headers(self) -> dict:
+        """
+        Function to get authentication headers.
+
+        Parameters:
+            self (MondayAuth): Instance of MondayAuth class.
+
+        Returns:
+            dict: Dictionary containing authorization headers with API key.
+        """
+        return {"Authorization": self.api_key}  # Returning headers with API key
+
+
 class MondayAPI:
     api_url: str
 
@@ -189,7 +189,8 @@ class MondayAPI:
         return self.__make_query(api_key, query)
 
 
-def fetch_applicants_from_monday_and_create_on_odoo(odoo_object, odoo_uid, odoo_auth, monday_auth, monday_api, board_id, item_name):
+def fetch_applicants_from_monday_and_create_on_odoo(odoo_object, odoo_uid, odoo_auth, monday_auth, monday_api, board_id,
+                                                    item_name):
     response = monday_api.read_items_and_names(monday_auth.api_key, board_id)
     if response.status_code == 200:
         response_json = response.json()
@@ -228,4 +229,5 @@ print('Enter the board_id:')
 board_id = int(input())
 print('Enter the name of the applicant on Monday:')
 item_name = input()
-fetch_applicants_from_monday_and_create_on_odoo(odoo_object, odoo_uid, odoo_auth, monday_auth, monday_api, board_id, item_name)
+fetch_applicants_from_monday_and_create_on_odoo(odoo_object, odoo_uid, odoo_auth, monday_auth, monday_api, board_id,
+                                                item_name)

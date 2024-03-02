@@ -10,23 +10,6 @@ ODOO_MODEL_NAME = "hr.applicant"
 
 
 @dataclass
-class MondayAuth:
-    api_key: str  # API key for authentication
-
-    def get_headers(self) -> dict:
-        """
-        Function to get authentication headers.
-
-        Parameters:
-            self (MondayAuth): Instance of MondayAuth class.
-
-        Returns:
-            dict: Dictionary containing authorization headers with API key.
-        """
-        return {"Authorization": self.api_key}  # Returning headers with API key
-
-
-@dataclass
 class OdooAuth:
     api_username: str  # Username for Odoo authentication
     api_password: str  # Password for Odoo authentication
@@ -174,6 +157,23 @@ class OdooAPI:
         )
 
 
+@dataclass
+class MondayAuth:
+    api_key: str  # API key for authentication
+
+    def get_headers(self) -> dict:
+        """
+        Function to get authentication headers.
+
+        Parameters:
+            self (MondayAuth): Instance of MondayAuth class.
+
+        Returns:
+            dict: Dictionary containing authorization headers with API key.
+        """
+        return {"Authorization": self.api_key}  # Returning headers with API key
+
+
 class MondayAPI:
     api_url: str
 
@@ -234,8 +234,9 @@ class MondayAPI:
         return self.__make_query(api_key, query)
 
 
-def fetch_applicants_from_monday_and_update_on_odoo(odoo_object, odoo_uid, odoo_auth, monday_auth, monday_api, board_id, id_name,
-                                 id_status, STATUS_TO_STAGE_ID):
+def fetch_applicants_from_monday_and_update_on_odoo(odoo_object, odoo_uid, odoo_auth, monday_auth, monday_api, board_id,
+                                                    id_name,
+                                                    id_status, STATUS_TO_STAGE_ID):
     response = monday_api.read_items_with_column_id(monday_auth.api_key, board_id, id_status)
     if response.status_code == 200:
         response_json = response.json()
@@ -295,5 +296,6 @@ STATUS_TO_STAGE_ID = {}
 for i in range(1, 7):
     STATUS_TO_STAGE_ID[input()] = i
 
-fetch_applicants_from_monday_and_update_on_odoo(odoo_object, odoo_uid, odoo_auth, monday_auth, monday_api, board_id, id_name, id_status,
-                             STATUS_TO_STAGE_ID)
+fetch_applicants_from_monday_and_update_on_odoo(odoo_object, odoo_uid, odoo_auth, monday_auth, monday_api, board_id,
+                                                id_name, id_status,
+                                                STATUS_TO_STAGE_ID)

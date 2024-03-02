@@ -11,23 +11,6 @@ ODOO_MODEL_NAME = "hr.applicant"
 
 
 @dataclass
-class MondayAuth:
-    api_key: str  # API key for authentication
-
-    def get_headers(self) -> dict:
-        """
-        Function to get authentication headers.
-
-        Parameters:
-            self (MondayAuth): Instance of MondayAuth class.
-
-        Returns:
-            dict: Dictionary containing authorization headers with API key.
-        """
-        return {"Authorization": self.api_key}  # Returning headers with API key
-
-
-@dataclass
 class OdooAuth:
     api_username: str  # Username for Odoo authentication
     api_password: str  # Password for Odoo authentication
@@ -132,6 +115,23 @@ class OdooAPI:
             api_model_name, odoo_object, api_uid, api_password, 'search', [[['partner_phone', '=', applicant_phone]]],
             None
         )
+
+
+@dataclass
+class MondayAuth:
+    api_key: str  # API key for authentication
+
+    def get_headers(self) -> dict:
+        """
+        Function to get authentication headers.
+
+        Parameters:
+            self (MondayAuth): Instance of MondayAuth class.
+
+        Returns:
+            dict: Dictionary containing authorization headers with API key.
+        """
+        return {"Authorization": self.api_key}  # Returning headers with API key
 
 
 class MondayAPI:

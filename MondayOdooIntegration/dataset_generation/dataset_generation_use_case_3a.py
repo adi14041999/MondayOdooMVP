@@ -11,23 +11,6 @@ ODOO_MODEL_NAME = "hr.applicant"
 
 
 @dataclass
-class MondayAuth:
-    api_key: str  # API key for authentication
-
-    def get_headers(self) -> dict:
-        """
-        Function to get authentication headers.
-
-        Parameters:
-            self (MondayAuth): Instance of MondayAuth class.
-
-        Returns:
-            dict: Dictionary containing authorization headers with API key.
-        """
-        return {"Authorization": self.api_key}  # Returning headers with API key
-
-
-@dataclass
 class OdooAuth:
     api_username: str  # Username for Odoo authentication
     api_password: str  # Password for Odoo authentication
@@ -115,7 +98,7 @@ class OdooAPI:
 
     def read_applicants_and_fields(self, api_model_name: str, odoo_object, api_uid, api_password, fields_list: list):
         """
-        Reads employees and specified fields from the Odoo API.
+        Reads applicants and specified fields from the Odoo API.
 
         Parameters:
             api_model_name (str): Name of the model.
@@ -130,6 +113,23 @@ class OdooAPI:
         return self.__make_query(
             api_model_name, odoo_object, api_uid, api_password, 'search_read', [[]], {'fields': fields_list}
         )
+
+
+@dataclass
+class MondayAuth:
+    api_key: str  # API key for authentication
+
+    def get_headers(self) -> dict:
+        """
+        Function to get authentication headers.
+
+        Parameters:
+            self (MondayAuth): Instance of MondayAuth class.
+
+        Returns:
+            dict: Dictionary containing authorization headers with API key.
+        """
+        return {"Authorization": self.api_key}  # Returning headers with API key
 
 
 class MondayAPI:
@@ -215,7 +215,7 @@ class MondayAPI:
 def fetch_applicants_from_odoo_and_create_on_monday(odoo_object, odoo_uid, odoo_auth, monday_auth, monday_api, mapping):
     odoo_fields = list(mapping.keys())
     applicants = odoo_api.read_applicants_and_fields(ODOO_MODEL_NAME, odoo_object, odoo_uid, odoo_auth.api_password,
-                                                    odoo_fields)
+                                                     odoo_fields)
     response = monday_api.create_board_with_name(monday_auth.api_key, "Applicants from Odoo")
     if response.status_code == 200:
         response_json = response.json()
