@@ -1,0 +1,1 @@
+A Python project to integrate [Monday.com](https://monday.com/) APIs and [https://www.odoo.com/](https://www.odoo.com/) APIs. The purpose of this was to try to generate datasets that can be finetuend my a code generating LLM.
